@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import QSplitter, QToolBar, QMessageBox, QInputDialog, QHea
 from datetime import datetime
 from functools import partial
 from fileViewer import DirTreeView
+from dllOrganizer import dllOrganizer
 
 # path to TOML config file that contains path to config_eldenring.toml
 config_path = 'config.toml'
@@ -32,7 +33,7 @@ config_eldenring_path = ''
 # Load and parse TOML config file
 try:
 	data = toml.load(config_path)
-	config_eldenring_path = data.get('path', '').strip()
+	config_eldenring_path = data['path']
 except Exception as e:
 	print(f"{e} creating...")
 	create_default_toml_file(config_path)
@@ -177,7 +178,7 @@ def displayTree(ModName):
 	# Construct the path to the 'mod' folder
 	mod_path = os.path.join(directory, 'mod', ModName)
 	fileTree = DirTreeView(path=mod_path, itemIDs=IDs)
-	fileTree.setStyleSheet("""QTreeView, QTreeView * {background-color: rgba(12, 12, 12, 0.5);
+	fileTree.setStyleSheet("""QTreeView, QTreeView * {background-color: rgba(12, 12, 12, 0.75);
 						color: white;
 						font-size: 16px;}
 						""")
@@ -196,6 +197,7 @@ def displayTree(ModName):
 		"color: white; font-size: 16px; background-color: rgba(0, 0, 0, 0.8); padding: 8px;")
 	splitter.replaceWidget(1, fileTree)
 	splitter.addWidget(fileTree)
+
 
 def refresh_ui():
 	global folders, mods, table
@@ -508,7 +510,7 @@ if config_eldenring_path:
 	table = CustomTableWidget(deleteMod, len(folders), 3)
 	# Set column headers
 	table.setHorizontalHeaderLabels(["", "Name", "Date Modified"])
-	table.setStyleSheet("""QTableWidget, QTableWidget * {background-color: rgba(0, 0, 0, 0.5);
+	table.setStyleSheet("""QTableWidget, QTableWidget * {background-color: rgba(0, 0, 0, 0.65);
 						color: white;
 						font-size: 16px;}
 						QTableCornerButton::section {
@@ -548,10 +550,14 @@ if config_eldenring_path:
 	
 
 	splitter = QSplitter()
-	# Add the scroll area to the central layout
 	splitter.addWidget(table)
-	splitter.setSizes([200,10])
-	central_layout.addWidget(splitter)
+	parent_splitter = QSplitter()
+	parent_splitter.addWidget(splitter)
+	parent_splitter.addWidget(dllOrganizer(config_eldenring_path))
+	parent_splitter.setStretchFactor(0, 4)
+	parent_splitter.setStretchFactor(1, 1)
+	central_layout.addWidget(parent_splitter)
+
 	
 	# Set the central widget as the main window's central widget
 	window.setCentralWidget(central_widget)
