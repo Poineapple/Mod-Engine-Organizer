@@ -21,19 +21,22 @@ config_path = 'config.toml'
 
 
 # Function to create a default TOML config file if it doesn't exist
-def create_default_toml_file(path):
+def create_default_toml_file(config_path):
 	default_data = {
 		'path': ''  # Default path is an empty string
 	}
-	with open(path, 'w') as file:
+	with open(config_path, 'w') as file:
 		toml.dump(default_data, file)
-	print(f"Created a default TOML file at {path}")
+	print(f"Created a default TOML file at {config_path}")
 
 config_eldenring_path = ''
 # Load and parse TOML config file
 try:
 	data = toml.load(config_path)
 	config_eldenring_path = data['path']
+	# Check if the file specified in the path exists
+	if not os.path.exists(config_eldenring_path):
+		raise FileNotFoundError(f"File not found: {config_eldenring_path}")
 except Exception as e:
 	print(f"{e} creating...")
 	create_default_toml_file(config_path)
@@ -371,14 +374,10 @@ def deleteMod():
 		
 		table.removeRow(currentRow)
 
-def showAddModDialog():
-	dialog = AddModDialog()
-	dialog.exec()
-
 app = QApplication([])
 window = QMainWindow()
-
 class AddModDialog(QDialog):
+
 	def __init__(self):
 		super().__init__()
 		self.setWindowTitle('Add Empty Mod')
@@ -422,6 +421,10 @@ class AddModDialog(QDialog):
 			self.accept()
 			refresh_ui()
 
+def showAddModDialog():
+	dialog = AddModDialog()
+	dialog.exec()
+
 if config_eldenring_path:
 	print(f"Found non-empty 'path': {config_eldenring_path}")
 else:
@@ -443,7 +446,7 @@ else:
 		config_eldenring_path = selected_path
 
 		# Write the updated config back to 'config.toml'
-		with open('config.toml', 'w') as config_file:
+		with open('config.toml', 'w', encoding='utf-8') as config_file:
 			toml.dump(config_data, config_file)
 
 if config_eldenring_path:

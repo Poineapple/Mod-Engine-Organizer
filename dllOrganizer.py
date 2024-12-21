@@ -10,9 +10,10 @@ class DragDropListWidget(QListWidget):
 		self.config_eldenring_path = config_eldenring_path
 		self.enabled_dlls = self.read_dlls()
 		print('enabled dlls ',self.enabled_dlls)
+		self.save_dict(self.enabled_dlls)
 		self.dlls_dict = self.read_dict()
 		print('dlls dict ',self.dlls_dict)
-		self.save_dict()
+		self.save_dlls()
 		self.setDragDropMode(QListWidget.DragDropMode.InternalMove)
 		self.populate()
 		self.itemChanged.connect(self.toggle_dll)
@@ -34,18 +35,18 @@ class DragDropListWidget(QListWidget):
 			new_order.append(self.item(index).text())
 		self.dlls_dict = {key: self.dlls_dict[key] for key in new_order}
 		print('moved',self.dlls_dict)
-		self.save_dict()
+		self.save_dict(self.dlls_dict)
 		self.save_dlls()
 
 	def toggle_dll(self, item):
 		self.dlls_dict[item.text()] = True if item.checkState() == Qt.CheckState.Checked else False
 		print('toggled',self.dlls_dict)
-		self.save_dict()
+		self.save_dict(self.dlls_dict)
 		self.save_dlls()
 
 	def read_dict(self):
 		try:
-			with open('config.toml', 'r') as toml_file:
+			with open('config.toml', 'r', encoding='utf-8' ) as toml_file:
 				data = toml.load(toml_file)
 			dll_list = data['external_dlls']
 			dll_paths = self.get_dll_paths()
@@ -81,10 +82,11 @@ class DragDropListWidget(QListWidget):
 			print(f"Failed to read the TOML file: {e}")
 			return {}
 
-	def save_dict(self):
+	def save_dict(self, dict=None):
+
 		config = toml.load('config.toml')
-		config['external_dlls'] = [key for key in self.dlls_dict.keys()]
-		with open('config.toml', 'w') as toml_file:
+		config['external_dlls'] = [key for key in dict.keys()]
+		with open('config.toml', 'w', encoding='utf-8') as toml_file:
 			toml.dump(config, toml_file)
 
 	def get_dll_paths(self):
@@ -103,7 +105,9 @@ class DragDropListWidget(QListWidget):
 		try:
 			with open(self.config_eldenring_path, 'r') as toml_file:
 				data = toml.load(toml_file)
-				return data['modengine']['external_dlls']
+				dll_list = data['modengine']['external_dlls']
+				dll_dict = {dll: True for dll in dll_list}
+				return dll_dict
 
 		except Exception as e:
 			print(f"Failed to read the TOML file: {e}")
