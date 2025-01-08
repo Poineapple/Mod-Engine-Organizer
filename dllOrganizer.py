@@ -5,9 +5,10 @@ from PyQt6.QtWidgets import QLabel, QApplication, QWidget, QVBoxLayout, QListWid
 from PyQt6.QtCore import Qt
 
 class DragDropListWidget(QListWidget):
-	def __init__(self, config_eldenring_path, parent=None):
+	def __init__(self, config_game_path, current_game, parent=None):
 		super().__init__(parent)
-		self.config_eldenring_path = config_eldenring_path
+		self.config_game_path = config_game_path
+		self.current_game = current_game
 		self.enabled_dlls = self.read_dlls()
 		print('enabled dlls ',self.enabled_dlls)
 		self.save_dict(self.enabled_dlls)
@@ -47,8 +48,8 @@ class DragDropListWidget(QListWidget):
 	def read_dict(self):
 		try:
 			with open('config.toml', 'r', encoding='utf-8' ) as toml_file:
-				data = toml.load(toml_file)
-			dll_list = data['external_dlls']
+				config = toml.load(toml_file)
+			dll_list = config[self.current_game]['external_dlls']
 			dll_paths = self.get_dll_paths()
 			print('paths',dll_paths)
 			print('list',dll_list)
@@ -85,13 +86,13 @@ class DragDropListWidget(QListWidget):
 	def save_dict(self, dict=None):
 
 		config = toml.load('config.toml')
-		config['external_dlls'] = [key for key in dict.keys()]
+		config[self.current_game]['external_dlls'] = [key for key in dict.keys()]
 		with open('config.toml', 'w', encoding='utf-8') as toml_file:
 			toml.dump(config, toml_file)
 
 	def get_dll_paths(self):
 		dll_paths = []
-		dir = os.path.dirname(self.config_eldenring_path)
+		dir = os.path.dirname(self.config_game_path)
 		for root, dirs, files in os.walk(dir):
 			dirs[:] = [d for d in dirs if d != 'modengine2']
 			for file in files:
@@ -103,7 +104,7 @@ class DragDropListWidget(QListWidget):
 
 	def read_dlls(self):
 		try:
-			with open(self.config_eldenring_path, 'r') as toml_file:
+			with open(self.config_game_path, 'r') as toml_file:
 				data = toml.load(toml_file)
 				dll_list = data['modengine']['external_dlls']
 				dll_dict = {dll: True for dll in dll_list}
@@ -113,19 +114,19 @@ class DragDropListWidget(QListWidget):
 			print(f"Failed to read the TOML file: {e}")
 
 	def save_dlls(self):
-		config_ME2 = toml.load(self.config_eldenring_path)
+		config_ME2 = toml.load(self.config_game_path)
 		config_ME2['modengine']['external_dlls'] = [key for key in self.dlls_dict.keys() if self.dlls_dict[key]]
-		with open(self.config_eldenring_path, 'w') as toml_file:
+		with open(self.config_game_path, 'w') as toml_file:
 			toml.dump(config_ME2, toml_file)
 
 class dllOrganizer(QWidget):
-	def __init__(self, config_eldenring_path):
+	def __init__(self, config_game_path, current_game):
 		super().__init__()
 		
 		self.layout = QVBoxLayout()
 		self.label = QLabel('Installed DLLs')
 		self.layout.addWidget(self.label)
-		self.list_widget = DragDropListWidget(config_eldenring_path)
+		self.list_widget = DragDropListWidget(config_game_path, current_game)
 		self.layout.addWidget(self.list_widget)
 		self.setLayout(self.layout)
 		self.list_widget.setStyleSheet("""QListWidget, QListWidget * {background-color: rgba(12, 12, 12, 0.75);
@@ -138,7 +139,7 @@ class dllOrganizer(QWidget):
 
 if __name__ == "__main__":
 	app = QApplication(sys.argv)
-	config_eldenring_path = 'a.toml'
-	window = dllOrganizer(config_eldenring_path)
+	config_game_path = 'a.toml'
+	window = dllOrganizer(config_game_path)
 	window.show()
 	sys.exit(app.exec())
