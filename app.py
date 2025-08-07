@@ -5,7 +5,6 @@ import toml
 import sys
 import subprocess
 import json
-import subprocess
 #from collections import defaultdict
 from pathlib import Path
 from PyQt6.QtGui import QAction, QColor, QIcon

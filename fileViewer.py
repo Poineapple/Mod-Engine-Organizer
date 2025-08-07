@@ -78,7 +78,7 @@ class EditableFileSystemModel(QFileSystemModel):
         self.itemIDs = itemIDs
 
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
-        if role == Qt.ItemDataRole.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole and index.column() == 0:
             file_path = self.filePath(index)
             file_name = os.path.basename(file_path)
             if file_name in self.itemIDs:

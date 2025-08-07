@@ -6,3 +6,6 @@ config.toml
 # Ignore virtual environment directories
 venv/
 env/
+
+# Ignore built files
+dist/
